@@ -1,0 +1,33 @@
+name: 发布 GitHub 周热榜
+
+on:
+  schedule:
+    - cron: "30 10 * * 1"
+      timezone: "Asia/Shanghai"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  discussions: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      DISCUSSION_CATEGORY: Announcements
+    steps:
+      - name: 获取项目代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 生成周热榜
+        run: python scripts/generate_weekly.py --output report.md
+
+      - name: 发布 Discussion
+        run: python scripts/publish_discussion.py --report report.md
