@@ -37,6 +37,9 @@ def main() -> None:
       repository(owner: $owner, name: $name) {
         id
         discussionCategories(first: 100) { nodes { id name } }
+        discussions(first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+          nodes { title url }
+        }
       }
     }
     """
@@ -48,6 +51,11 @@ def main() -> None:
         raise SystemExit(f"找不到 Discussion 分类“{category_name}”。可用分类：{available}")
     if args.dry_run:
         print(f"检查通过：将发布到 {repository} 的 Discussion 分类“{category_name}”。")
+        return
+
+    existing = next((item for item in category_data["discussions"]["nodes"] if item["title"] == title), None)
+    if existing:
+        print(f"已存在同标题周榜，跳过重复发布：{existing['url']}")
         return
 
     create_mutation = """
